@@ -1,50 +1,52 @@
 import { Component } from '@angular/core';
 import { NavController, NavParams } from 'ionic-angular';
 
-import { SQLite, SQLiteObject } from '@ionic-native/sqlite';
-import { Toast } from '@ionic-native/toast';
-
-
+import { Storage } from '@ionic/storage';
+import { Wallet } from '../../app/wallet';
+import { WALLETDB } from '../../app/const';
 @Component({
   selector: 'page-contact',
   templateUrl: 'contact.html'
 })
 export class ContactPage {
+  data = new Wallet();
+  db;
+  isNull: boolean;
 
-  data = {
-    date: '',
-    type: '',
-    description: '',
-    amount: 0
-  };
+
   constructor(public navCtrl: NavController,
     public navParams: NavParams,
-    private sqlite: SQLite,
-    private toast: Toast ) {}
+    private storage: Storage
+  ) {
+    this.data.date = new Date().toISOString();
+    this.db = new Array();
+  }
 
   saveData() {
-    this.sqlite.create({
-      name: 'ionicdb.db',
-      location: 'default'
-    }).then((db: SQLiteObject) => {
-      db.executeSql('INSERT INTO expense VALUES(NULL,?,?,?,?)', [this.data.date, this.data.type, this.data.description, this.data.amount])
-        .then(res => {
-          console.log(res);
-          this.toast.show('Data saved', '5000', 'center').subscribe(toast => {
-            this.navCtrl.popToRoot();
-          })
-        })
-        .catch(e => {
-          console.log(e);
-          this.toast.show(e, '5000', 'center').subscribe(toast => {
-            console.log(toast);
-          });
-        })
-    }).catch(e => {
-      console.log(e);
-      this.toast.show(e, '5000', 'center').subscribe(toast => {
-        console.log(toast);
-      });
+    this.storage.get(WALLETDB).then(dataStored=> {
+      if (!dataStored) {
+        this.isNull = true;
+        this.storage.set(WALLETDB, JSON.stringify(this.db.push(this.data)));
+      } else {
+        this.isNull = false;
+        console.log('db 1', this.db, dataStored);
+
+        this.db = JSON.parse(dataStored);
+        this.db.push(this.data);
+        console.log('db 2', this.db);
+        this.storage.set(WALLETDB, JSON.stringify(this.db));
+        // this.storage.set(WALLETDB, dataStored.push(this.data));
+      }
     });
+    // if (this.isNull) {
+
+    // } else {
+    //   console.log('db', this.db);
+    //   this.db.push(this.data);
+    //   console.log('db after', this.db);
+    //   this.storage.set(WALLETDB, JSON.stringify(this.db));
+    // }
+    // this.storage.get(WALLETDB).then(dataStored => console.log(dataStored));
+
   }
 }

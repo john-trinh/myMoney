@@ -1,21 +1,26 @@
 import { Component } from '@angular/core';
 import { NavController } from 'ionic-angular';
+// import { Toast } from '@ionic-native/toast';
 
-import { SQLite, SQLiteObject } from '@ionic-native/sqlite';
+import { Wallet } from '../../app/wallet';
 import { ContactPage } from '../contact/contact';
+import { Storage } from '@ionic/storage';
 import { AboutPage } from '../about/about';
-
+import { WALLETDB } from '../../app/const';
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html'
 })
 export class HomePage {
-  expenses: any[];
+  expenses: Wallet[];
   totalIncome = 0;
   totalExpense = 0;
-  balance = 0;
+  balance: any;
 
-  constructor(public navCtrl: NavController, private sqlite: SQLite) {}
+  constructor(
+    public navCtrl: NavController,
+    private storage: Storage
+  ) {}
 
   ionViewDidLoad() {
     this.getData();
@@ -25,67 +30,29 @@ export class HomePage {
   }
 
   getData() {
-    this.sqlite.create({
-      name: 'ionicdb.db',
-      location: 'default'
-    }).then((db: SQLiteObject) => {
-      db.executeSql('CREATE TABLE IF NOT EXISTS expense(rowid INTEGER PRIMARY KEY, date TEXT, type TEXT, description TEXT, amount INT)', {})
-        .then(res => console.log('Executed SQL'))
-        .catch(e => console.log(e));
-
-      db.executeSql('SELECT * FROM expense ORDER BY rowid DESC', {})
-        .then(res => {
-          this.expenses = [];
-          for (let i = 0; i < res.rows.length; i++) {
-            this.expenses.push({
-              rowid:res.rows.item(i).rowid,
-              date: res.rows.item(i).date,
-              type: res.rows.item(i).type,
-              description: res.rows.item(i).description,
-              amount: res.rows.item(i).amount
-            });
-          }
-        }).catch(e => console.log(e));
-
-      db.executeSql('SELECT SUM(amount) AS totalIncome FROM expense WHERE type="Income"', {})
-        .then(res => {
-          if (res.rows.length > 0) {
-            this.totalIncome = parseInt(res.rows.item(0).totalExpense);
-            this.balance = this.totalIncome - this.totalExpense;
-          }
-        })
-
-      db.executeSql('SELECT SUM(amount) AS totalExpense FROM expense WHERE type="Expense"', {})
-      .then(res => {
-        if(res.rows.length>0) {
-          this.totalExpense = parseInt(res.rows.item(0).totalExpense);
-          this.balance = this.totalIncome-this.totalExpense;
-        }
-      })
-    }).catch(e => console.log(e));
+    this.storage.get(WALLETDB)
+    .then(data => {
+      if (data) {
+        this.expenses = JSON.parse(data);
+        this.expenses.forEach(x => this.balance = x.amount);
+      } else {
+        this.balance = "No Wallet added yet";
+      }
+    });
   }
 
   addData() {
     this.navCtrl.push(ContactPage);
   }
 
-  editData(rowid) {
+  editData(walletId) {
     this.navCtrl.push(AboutPage, {
-      rowid: rowid
+      walletId: walletId
     });
   }
 
-  deleteData(rowid) {
-    this.sqlite.create({
-      name: 'ionicdb.db',
-      location: 'default'
-    }). then((db: SQLiteObject) => {
-      db.executeSql('DELETE FROM expense WHERE rowid=?', [rowid])
-        .then(res => {
-          console.log(res);
-          this.getData();
-        })
-        .catch(e => console.log(e));
-    }).catch(e => console.log(e));
+  deleteData(walletId) {
+
   }
+
 }

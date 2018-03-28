@@ -12,6 +12,7 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 
 import { SQLite } from '@ionic-native/sqlite';
+import { IonicStorageModule } from '@ionic/storage';
 import { Toast } from '@ionic-native/toast';
 
 @NgModule({
@@ -24,7 +25,8 @@ import { Toast } from '@ionic-native/toast';
   ],
   imports: [
     BrowserModule,
-    IonicModule.forRoot(MyApp)
+    IonicModule.forRoot(MyApp),
+    IonicStorageModule.forRoot()
   ],
   bootstrap: [IonicApp],
   entryComponents: [

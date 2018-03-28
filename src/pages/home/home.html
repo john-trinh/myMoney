@@ -17,7 +17,7 @@
     <ion-item-sliding *ngFor="let expense of expenses; let i=index">
       <ion-item nopadding>
         <p>
-          <span>{{expense.date}}</span><br>
+          <span>{{expense.date | date:'d MMM, y'}}</span><br>
           Type: {{expense.type}}<br>
           {{expense.description}}
         </p>
@@ -26,10 +26,10 @@
         </h3>
       </ion-item>
       <ion-item-options side="right">
-        <button ion-button color="primary" (click)="editData(expense.rowid)">
+        <button ion-button color="primary" (click)="editData(expense.walletId)">
           <ion-icon name="paper"></ion-icon>
         </button>
-        <button ion-button color="danger" (click)="deleteData(expense.rowid)">
+        <button ion-button color="danger" (click)="deleteData(expense.walletId)">
           <ion-icon name="trash"></ion-icon>
         </button>
       </ion-item-options>
@@ -38,6 +38,6 @@
 </ion-content>
 <ion-footer>
   <ion-toolbar>
-    <ion-title>Balance: ${{balance}}</ion-title>
+    <ion-title *ngIf="balance">Balance: {{balance}}</ion-title>
   </ion-toolbar>
 </ion-footer>
